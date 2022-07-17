@@ -1,0 +1,167 @@
+---
+title: "Optimizer Trials"
+author: "Lutfi Nur Hakim (1004132) & Dharmesh (1004368)"
+---
+
+# Libraries used
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(keras)
+library(tidyr)
+library(stringr)
+```
+
+## MNIST Example: Recognizing digits from 0-9
+
+### Data wrangling
+1. Utilize Keras inbuilt MNIST dataset
+2. Extract x (feature variables) and y (response variables)
+3. Reshape: Dataset is suitable for processing through Convolutional Neural Networks. However, we intend to create an Artificial (Classifier) Neural Network with linear layers. Hence, we reshape the images from 28x28 matrices to 1x784 matrices. [Maybe add a matrix drawing of original dataset to new dataset for better understanding?]
+4. Rescale: x values take values from 0 to 255. We rescale these x values to be in the range of [0,1]
+5. Perform one-hot encoding on the y values. Of which, there are 10 values being digits from 0 to 9.
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+MNIST <- dataset_mnist()
+
+x_train <- MNIST$train$x
+y_train <- MNIST$train$y
+x_test <- MNIST$test$x
+y_test <- MNIST$test$y
+
+x_train <- array_reshape(x_train, c(nrow(x_train), 784))
+x_test <- array_reshape(x_test, c(nrow(x_test), 784))
+
+x_train <- x_train/255
+x_test <- x_test/255
+
+y_train <- to_categorical(y_train, 10)
+y_test <- to_categorical(y_test, 10)
+```
+
+### Test results
+
+```{r}
+model_gd <- keras_model_sequential() 
+model_gd %>% 
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+model_gd %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_sgd(),
+  metrics = c('accuracy')
+)
+start_time <- Sys.time()
+history_gd <- model_gd %>% fit(
+  x_train, y_train, 
+  epochs = 300, batch_size = 128, 
+  validation_split = 0.2,
+  verbose = 0
+)
+end_time <- Sys.time()
+
+accuracy <- model_gd %>% 
+  evaluate(x_test, y_test)
+
+print(str_c("Time taken: ", round(end_time - start_time, 3), " mins"))
+print(str_c("Prediction accuracy: ", round(unname(accuracy[2]), 4)))
+```
+
+```{r}
+model_gdmom <- keras_model_sequential() 
+model_gdmom %>% 
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+model_gdmom %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_sgd(momentum = 0.9),
+  metrics = c('accuracy')
+)
+start_time <- Sys.time()
+history_gdmom <- model_gdmom %>% fit(
+  x_train, y_train, 
+  epochs = 300, batch_size = 128, 
+  validation_split = 0.2,
+  verbose = 0
+)
+end_time <- Sys.time()
+accuracy <- model_gdmom %>% 
+  evaluate(x_test, y_test)
+
+print(str_c("Time taken: ", round(end_time - start_time, 3), " mins"))
+print(str_c("Prediction accuracy: ", round(unname(accuracy[2]), 4)))
+```
+
+
+```{r}
+model_rmsp <- keras_model_sequential() 
+model_rmsp %>% 
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+model_rmsp %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_rmsprop(),
+  metrics = c('accuracy')
+)
+start_time <- Sys.time()
+history_rmsp <- model_rmsp %>% fit(
+  x_train, y_train, 
+  epochs = 300, batch_size = 128, 
+  validation_split = 0.2,
+  verbose = 0
+)
+end_time <- Sys.time()
+accuracy <- model_rmsp %>% 
+  evaluate(x_test, y_test)
+
+print(str_c("Time taken: ", round(end_time - start_time, 3), " mins"))
+print(str_c("Prediction accuracy: ", round(unname(accuracy[2]), 4)))
+```
+
+
+```{r}
+model_adam <- keras_model_sequential() 
+model_adam %>% 
+  layer_dense(units = 256, activation = 'relu', input_shape = c(784)) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 128, activation = 'relu') %>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 10, activation = 'softmax')
+
+model_adam %>% compile(
+  loss = 'categorical_crossentropy',
+  optimizer = optimizer_adam(),
+  metrics = c('accuracy')
+)
+start_time <- Sys.time()
+history_adam <- model_adam %>% fit(
+  x_train, y_train, 
+  epochs = 300, batch_size = 128, 
+  validation_split = 0.2,
+  verbose = 0
+)
+end_time <- Sys.time()
+accuracy <- model_adam %>% 
+  evaluate(x_test, y_test)
+
+print(str_c("Time taken: ", round(end_time - start_time, 3), " mins"))
+print(str_c("Prediction accuracy: ", round(unname(accuracy[2]), 4)))
+```
+
+```{r}
+MNIST$train$x
+```
+
+
